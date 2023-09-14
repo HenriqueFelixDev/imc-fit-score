@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'pages/onboarding/onboarding_page.dart';
 import 'styles/theme.dart';
 
 class AppWidget extends StatelessWidget {
@@ -10,11 +11,7 @@ class AppWidget extends StatelessWidget {
     return MaterialApp(
       title: 'IMC FitScore',
       theme: darkTheme,
-      home: const Scaffold(
-        body: Center(
-          child: Text('IMC FitScore'),
-        )
-      ),
+      home: const OnboardingPage(),
     );
   }
 }
