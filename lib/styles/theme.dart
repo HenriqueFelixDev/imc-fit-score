@@ -1,14 +1,27 @@
 import 'package:flutter/material.dart';
 
+import '../gen/colors.gen.dart';
+
 final darkTheme = ThemeData(
   useMaterial3: true,
   fontFamily: 'Barlow',
+  elevatedButtonTheme: ElevatedButtonThemeData(
+    style: ElevatedButton.styleFrom(
+      fixedSize: const Size.fromHeight(50.0),
+      backgroundColor: ColorName.primary,
+      foregroundColor: ColorName.onPrimary,
+      textStyle: const TextStyle(fontWeight: FontWeight.bold),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(10.0),
+      )
+    )
+  ),
   colorScheme: const ColorScheme.dark(
-    background: Color(0xFF1E1E1E),
-    onBackground: Color(0xFFE0E0E0),
-    surface: Color(0xFF333333),
-    onSurface: Color(0xFFE0E0E0),
-    primary: Color(0xFFFF8845),
-    onPrimary: Color(0xFF161616),
+    background: ColorName.background,
+    onBackground: ColorName.onBackground,
+    surface: ColorName.surface,
+    onSurface: ColorName.onSurface,
+    primary: ColorName.primary,
+    onPrimary: ColorName.onPrimary,
   ),
 );

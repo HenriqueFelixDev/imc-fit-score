@@ -47,3 +47,7 @@ flutter:
 
 flutter_gen:
   output: lib/gen/
+
+  colors:
+    inputs:
+      - assets/colors/colors.xml
