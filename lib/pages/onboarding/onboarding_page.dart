@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../components/components.dart';
 import '../../gen/assets.gen.dart';
 import '../../gen/colors.gen.dart';
+import '../imc_form/imc_form_page.dart';
 
 class OnboardingPage extends StatefulWidget {
   const OnboardingPage({super.key});
@@ -114,7 +115,11 @@ class _LastPageIndicator extends StatelessWidget {
         Expanded(
           child: ElevatedButton(
             child: const Text('Começar'),
-            onPressed: () {},
+            onPressed: () {
+              Navigator.pushReplacement(context, MaterialPageRoute(
+                builder: (_) => const IMCFormPage(),
+              ));
+            },
           ),
         ),
       ],

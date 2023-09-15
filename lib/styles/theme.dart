@@ -16,6 +16,7 @@ final darkTheme = ThemeData(
       )
     )
   ),
+  dividerColor: ColorName.surface,
   colorScheme: const ColorScheme.dark(
     background: ColorName.background,
     onBackground: ColorName.onBackground,

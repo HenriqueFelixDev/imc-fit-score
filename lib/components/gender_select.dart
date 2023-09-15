@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:imc_fitscore/gen/assets.gen.dart';
 
 import '../core/models/models.dart';
+import '../gen/assets.gen.dart';
 import 'gender_card.dart';
 
 class GenderSelect extends StatefulWidget {
