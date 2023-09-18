@@ -52,8 +52,8 @@ class _OnboardingPageState extends State<OnboardingPage> {
           } = _pages[index];
 
           return Padding(
-            padding: const EdgeInsets.all(32.0),
-            child: Column(
+            padding: const EdgeInsets.all(32.0).copyWith(bottom: 8.0),
+            child: ListView(
               children: [
                 image.image(
                   height: 300.0,
@@ -88,7 +88,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
           };
 
           return Padding(
-            padding: const EdgeInsets.all(32.0),
+            padding: const EdgeInsets.all(32.0).copyWith(top: 0.0),
             child: footer,
           );
         },
