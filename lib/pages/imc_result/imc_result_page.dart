@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 
 import '../../components/components.dart';
+import '../../components/imc_result_card.dart';
 import '../../core/models/models.dart';
-import '../../gen/colors.gen.dart';
 import '../../services/imc_service/imc_service.dart';
 
 class IMCResultPage extends StatelessWidget {
@@ -14,22 +14,10 @@ class IMCResultPage extends StatelessWidget {
     required this.imcService,
   });
 
-  String getStatusMessage(IMCStatus status) {
-    return switch (status) {
-      IMCStatus.veryUnderweight => 'Muito Abaixo do Peso',
-      IMCStatus.underweight => 'Abaixo do Peso',
-      IMCStatus.normal => 'Normal',
-      IMCStatus.overweight => 'Sobrepeso',
-      IMCStatus.obeseClass1 => 'Obesidade Grau I',
-      IMCStatus.obeseClass2 => 'Obesidade Grau II',
-      IMCStatus.obeseClass3 => 'Obesidade Grau III',
-    };
-  }
-
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
-    final IMCResult(:imc, :status) = imcService.getIMC(person);
+    final imc = imcService.getIMC(person);
 
     return SafeArea(
       child: Scaffold(
@@ -52,51 +40,8 @@ class IMCResultPage extends StatelessWidget {
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        const Text(
-                          'IMC =',
-                          style: TextStyle(
-                              fontSize: 18.0, fontWeight: FontWeight.bold),
-                        ),
-                        const SizedBox(width: 8.0),
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(person.weight.toStringAsFixed(1)),
-                            const SizedBox(
-                              height: 10.0,
-                              width: 80.0,
-                              child: Divider(),
-                            ),
-                            Text('${person.height} x ${person.height}'),
-                          ],
-                        )
-                      ],
-                    ),
-                    Container(
-                      padding: const EdgeInsets.all(8.0),
-                      margin: const EdgeInsets.symmetric(vertical: 16.0),
-                      decoration: BoxDecoration(
-                        color: colors.surface,
-                        borderRadius: BorderRadius.circular(10.0),
-                      ),
-                      child: Column(
-                        children: [
-                          Text(
-                            imc.toStringAsFixed(1),
-                            style: const TextStyle(
-                              fontSize: 32.0,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          Text(getStatusMessage(status),
-                              style:
-                                  const TextStyle(color: ColorName.textOpaque)),
-                        ],
-                      ),
-                    ),
+                    _IMCCalculation(person: person),
+                    IMCResultCard(imc: imc),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                       children: [
@@ -128,6 +73,37 @@ class IMCResultPage extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+}
+
+class _IMCCalculation extends StatelessWidget {
+  final Person person;
+  const _IMCCalculation({required this.person});
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        const Text(
+          'IMC =',
+          style: TextStyle(fontSize: 18.0, fontWeight: FontWeight.bold),
+        ),
+        const SizedBox(width: 8.0),
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(person.weight.toStringAsFixed(1)),
+            const SizedBox(
+              height: 10.0,
+              width: 80.0,
+              child: Divider(),
+            ),
+            Text('${person.height} x ${person.height}'),
+          ],
+        )
+      ],
     );
   }
 }

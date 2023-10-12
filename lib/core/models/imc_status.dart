@@ -11,3 +11,17 @@ enum IMCStatus {
   final double minIMC;
   final double maxIMC;
 }
+
+extension XIMCStatus on IMCStatus {
+  String getMessage() {
+    return switch (this) {
+      IMCStatus.veryUnderweight => 'Muito Abaixo do Peso',
+      IMCStatus.underweight => 'Abaixo do Peso',
+      IMCStatus.normal => 'Normal',
+      IMCStatus.overweight => 'Sobrepeso',
+      IMCStatus.obeseClass1 => 'Obesidade Grau I',
+      IMCStatus.obeseClass2 => 'Obesidade Grau II',
+      IMCStatus.obeseClass3 => 'Obesidade Grau III',
+    };
+  }
+}
