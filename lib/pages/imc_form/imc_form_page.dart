@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 
 import '../../components/components.dart';
 import '../../core/models/models.dart';
-import '../../services/imc_service/imc_service_impl.dart';
 import '../imc_result/imc_result_page.dart';
 
 class IMCFormPage extends StatefulWidget {
@@ -80,15 +79,7 @@ class _IMCFormPageState extends State<IMCFormPage> {
                 height: height,
                 weight: weight,
               );
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) {
-                  return IMCResultPage(
-                    person: person,
-                    imcService: IMCServiceImpl(),
-                  );
-                }),
-              );
+              Navigator.push(context, IMCResultPage.route(person));
             },
             child: const Text('Calcular Meu IMC'),
           ),

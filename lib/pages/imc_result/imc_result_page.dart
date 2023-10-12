@@ -4,12 +4,39 @@ import '../../components/components.dart';
 import '../../components/imc_result_card.dart';
 import '../../core/models/models.dart';
 import '../../services/imc_service/imc_service.dart';
+import '../../services/imc_service/imc_service_impl.dart';
 
 class IMCResultPage extends StatelessWidget {
   final Person person;
   final IMCService imcService;
   const IMCResultPage({
     super.key,
+    required this.person,
+    required this.imcService,
+  });
+
+  static Route route(Person person) {
+    return MaterialPageRoute(
+      builder: (_) {
+        return IMCResultPage(
+          person: person,
+          imcService: IMCServiceImpl(),
+        );
+      },
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return _IMCResultView(person: person, imcService: imcService);
+  }
+}
+
+class _IMCResultView extends StatelessWidget {
+  final Person person;
+  final IMCService imcService;
+
+  const _IMCResultView({
     required this.person,
     required this.imcService,
   });
