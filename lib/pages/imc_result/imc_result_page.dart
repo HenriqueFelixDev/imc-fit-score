@@ -1,5 +1,11 @@
-import 'package:flutter/material.dart';
+import 'dart:ui';
 
+import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
+import 'package:image_gallery_saver/image_gallery_saver.dart';
+import 'package:permission_handler/permission_handler.dart';
+
+import '../../components/app_snackbar.dart';
 import '../../components/components.dart';
 import '../../components/imc_result_card.dart';
 import '../../core/models/models.dart';
@@ -8,31 +14,24 @@ import '../../services/imc_service/imc_service_impl.dart';
 
 class IMCResultPage extends StatelessWidget {
   final Person person;
-  final IMCService imcService;
-  const IMCResultPage({
-    super.key,
-    required this.person,
-    required this.imcService,
-  });
+
+  const IMCResultPage({super.key, required this.person});
 
   static Route route(Person person) {
     return MaterialPageRoute(
       builder: (_) {
-        return IMCResultPage(
-          person: person,
-          imcService: IMCServiceImpl(),
-        );
+        return IMCResultPage(person: person);
       },
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    return _IMCResultView(person: person, imcService: imcService);
+    return _IMCResultView(person: person, imcService: IMCServiceImpl());
   }
 }
 
-class _IMCResultView extends StatelessWidget {
+class _IMCResultView extends StatefulWidget {
   final Person person;
   final IMCService imcService;
 
@@ -42,9 +41,58 @@ class _IMCResultView extends StatelessWidget {
   });
 
   @override
+  State<_IMCResultView> createState() => _IMCResultViewState();
+}
+
+class _IMCResultViewState extends State<_IMCResultView> {
+  final _boundaryKey = GlobalKey();
+
+  Future<void> _saveImage() async {
+    final scaffoldMessenger = ScaffoldMessenger.of(context);
+    final render = _boundaryKey.currentContext!.findRenderObject()
+        as RenderRepaintBoundary;
+
+    if (await Permission.storage.isPermanentlyDenied) {
+      scaffoldMessenger.showSnackBar(
+        AppSnackbar(
+          text:
+              'Permissão permanentemente negada! Altere nas configurações para poder salvar imagens',
+        ),
+      );
+      return;
+    }
+
+    if (await Permission.storage.isDenied) {
+      if ((await Permission.storage.request()).isDenied) {
+        scaffoldMessenger.showSnackBar(AppSnackbar(text: 'Permissão negada'));
+        return;
+      }
+    }
+
+    final path = await _saveImageToGallery(render);
+    final success = path != null;
+
+    final icon = success ? Icons.check_rounded : Icons.close_rounded;
+    final text = success
+        ? 'Imagem salva na galeria'
+        : 'Ocorreu um erro ao salvar a imagem';
+
+    scaffoldMessenger.showSnackBar(AppSnackbar(icon: icon, text: text));
+  }
+
+  Future<String?> _saveImageToGallery(RenderRepaintBoundary render) async {
+    final image = await render.toImage();
+    final bytes = (await image.toByteData(format: ImageByteFormat.png))!
+        .buffer
+        .asUint8List();
+    final result = await ImageGallerySaver.saveImage(bytes);
+    return result['filePath'];
+  }
+
+  @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
-    final imc = imcService.getIMC(person);
+    final imc = widget.imcService.getIMC(widget.person);
 
     return SafeArea(
       child: Scaffold(
@@ -59,16 +107,24 @@ class _IMCResultView extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     const IMCTitle(text: 'IMC'),
-                    Text(
-                      person.name ?? '',
-                      textAlign: TextAlign.center,
-                      style: const TextStyle(
-                        fontSize: 18.0,
-                        fontWeight: FontWeight.bold,
+                    RepaintBoundary(
+                      key: _boundaryKey,
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            widget.person.name ?? '',
+                            textAlign: TextAlign.center,
+                            style: const TextStyle(
+                              fontSize: 18.0,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          _IMCCalculation(person: widget.person),
+                          IMCResultCard(imc: imc),
+                        ],
                       ),
                     ),
-                    _IMCCalculation(person: person),
-                    IMCResultCard(imc: imc),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                       children: [
@@ -77,7 +133,7 @@ class _IMCResultView extends StatelessWidget {
                           child: const Icon(Icons.share_rounded),
                         ),
                         CircleButton.surface(
-                          onPressed: () {},
+                          onPressed: _saveImage,
                           child: const Icon(Icons.add_photo_alternate),
                         ),
                       ],
