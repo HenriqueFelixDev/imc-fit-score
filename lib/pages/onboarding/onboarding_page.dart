@@ -119,9 +119,7 @@ class _LastPageIndicator extends StatelessWidget {
             child: const Text('Começar'),
             onPressed: () async {
               context.read<SettingsStorage>().setHideOnboarding(true);
-              Navigator.pushReplacement(context, MaterialPageRoute(
-                builder: (_) => const IMCFormPage(),
-              ));
+              Navigator.pushReplacement(context, IMCFormPage.route());
             },
           ),
         ),

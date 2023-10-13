@@ -4,14 +4,29 @@ import '../../components/components.dart';
 import '../../core/models/models.dart';
 import '../imc_result/imc_result_page.dart';
 
-class IMCFormPage extends StatefulWidget {
+class IMCFormPage extends StatelessWidget {
   const IMCFormPage({super.key});
 
+  static Route route() {
+    return MaterialPageRoute(
+      builder: (_) => const IMCFormPage(),
+    );
+  }
+
   @override
-  State<IMCFormPage> createState() => _IMCFormPageState();
+  Widget build(BuildContext context) {
+    return const _IMCFormView();
+  }
 }
 
-class _IMCFormPageState extends State<IMCFormPage> {
+class _IMCFormView extends StatefulWidget {
+  const _IMCFormView();
+
+  @override
+  State<_IMCFormView> createState() => _IMCFormViewState();
+}
+
+class _IMCFormViewState extends State<_IMCFormView> {
   String? name;
   Gender? gender;
   double height = 1.5;
