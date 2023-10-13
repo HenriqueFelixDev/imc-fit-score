@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 import '../../components/components.dart';
+import '../../core/storage/settings_storage.dart';
 import '../../gen/assets.gen.dart';
 import '../../gen/colors.gen.dart';
 import '../imc_form/imc_form_page.dart';
@@ -115,7 +117,8 @@ class _LastPageIndicator extends StatelessWidget {
         Expanded(
           child: ElevatedButton(
             child: const Text('Começar'),
-            onPressed: () {
+            onPressed: () async {
+              context.read<SettingsStorage>().setHideOnboarding(true);
               Navigator.pushReplacement(context, MaterialPageRoute(
                 builder: (_) => const IMCFormPage(),
               ));
