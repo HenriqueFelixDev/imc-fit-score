@@ -5,8 +5,9 @@ import '../gen/assets.gen.dart';
 import 'gender_card.dart';
 
 class GenderSelect extends StatefulWidget {
+  final Gender? initialValue;
   final ValueChanged<Gender> onChanged;
-  const GenderSelect({super.key, required this.onChanged});
+  const GenderSelect({super.key, this.initialValue, required this.onChanged});
 
   @override
   State<GenderSelect> createState() => _GenderSelectState();
@@ -14,6 +15,12 @@ class GenderSelect extends StatefulWidget {
 
 class _GenderSelectState extends State<GenderSelect> {
   Gender? _selected;
+
+  @override
+  void initState() {
+    super.initState();
+    _selected = widget.initialValue;
+  }
 
   void selectGender(Gender gender) {
     setState(() => _selected = gender);
