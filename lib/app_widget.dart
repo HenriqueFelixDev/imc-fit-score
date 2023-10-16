@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -17,7 +16,7 @@ class AppWidget extends StatelessWidget {
     return MultiProvider(
       providers: [
         Provider.value(value: sharedPreferences),
-        RepositoryProvider(
+        Provider(
           create: (context) => SettingsStorage(preferences: context.read()),
         ),
       ],
