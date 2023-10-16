@@ -1,9 +1,12 @@
 import 'dart:ui';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:image_gallery_saver/image_gallery_saver.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:share_plus/share_plus.dart';
+import 'package:device_info_plus/device_info_plus.dart';
 
 import '../../components/app_snackbar.dart';
 import '../../components/components.dart';
@@ -52,22 +55,7 @@ class _IMCResultViewState extends State<_IMCResultView> {
     final render = _boundaryKey.currentContext!.findRenderObject()
         as RenderRepaintBoundary;
 
-    if (await Permission.storage.isPermanentlyDenied) {
-      scaffoldMessenger.showSnackBar(
-        AppSnackbar(
-          text:
-              'Permissão permanentemente negada! Altere nas configurações para poder salvar imagens',
-        ),
-      );
-      return;
-    }
-
-    if (await Permission.storage.isDenied) {
-      if ((await Permission.storage.request()).isDenied) {
-        scaffoldMessenger.showSnackBar(AppSnackbar(text: 'Permissão negada'));
-        return;
-      }
-    }
+    if (!(await _checkStoragePermission())) return;
 
     final path = await _saveImageToGallery(render);
     final success = path != null;
@@ -80,13 +68,63 @@ class _IMCResultViewState extends State<_IMCResultView> {
     scaffoldMessenger.showSnackBar(AppSnackbar(icon: icon, text: text));
   }
 
-  Future<String?> _saveImageToGallery(RenderRepaintBoundary render) async {
+  Future<Uint8List> _getResultImageBytes(RenderRepaintBoundary render) async {
     final image = await render.toImage();
-    final bytes = (await image.toByteData(format: ImageByteFormat.png))!
+    return (await image.toByteData(format: ImageByteFormat.png))!
         .buffer
         .asUint8List();
+  }
+
+  Future<String?> _saveImageToGallery(RenderRepaintBoundary render) async {
+    final bytes = await _getResultImageBytes(render);
     final result = await ImageGallerySaver.saveImage(bytes);
-    return result['filePath'];
+    return result['filePath']?.replaceAll('file://', '');
+  }
+
+  Future<bool> _checkStoragePermission() async {
+    final scaffoldMessenger = ScaffoldMessenger.of(context);
+    final androidInfo = await DeviceInfoPlugin().androidInfo;
+    final apiVersion = androidInfo.version.sdkInt;
+
+    // Em dispositivos com a API Version do Android >= 33
+    // a permissão de Read/Write External Storage retorna sempre denied
+    // por isso é necessário solicitar a permissão de Manage External Storage
+    final storagePermission = apiVersion >= 33
+        ? Permission.manageExternalStorage
+        : Permission.storage;
+
+    if (await storagePermission.isPermanentlyDenied) {
+      scaffoldMessenger.showSnackBar(
+        AppSnackbar(
+          text:
+              'Permissão permanentemente negada! Altere nas configurações para poder salvar imagens',
+        ),
+      );
+      return false;
+    }
+
+    if (await storagePermission.isDenied) {
+      if ((await storagePermission.request()).isDenied) {
+        scaffoldMessenger.showSnackBar(AppSnackbar(text: 'Permissão negada'));
+        return false;
+      }
+    }
+
+    return storagePermission.isGranted;
+  }
+
+  Future<void> _shareImage() async {
+    final render = _boundaryKey.currentContext!.findRenderObject()
+        as RenderRepaintBoundary;
+
+    final bytes = await _getResultImageBytes(render);
+
+    await Share.shareXFiles(
+      [
+        XFile.fromData(bytes, mimeType: 'image/png'),
+      ],
+      text: 'Resultado do IMC',
+    );
   }
 
   @override
@@ -129,7 +167,7 @@ class _IMCResultViewState extends State<_IMCResultView> {
                       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                       children: [
                         CircleButton.surface(
-                          onPressed: () {},
+                          onPressed: _shareImage,
                           child: const Icon(Icons.share_rounded),
                         ),
                         CircleButton.surface(
