@@ -43,6 +43,13 @@ class IMCFormState {
 
   Person get person => Person(id: id, name: name, gender: gender);
 
+  PersonDimensions get personDimensions => PersonDimensions(
+        personId: id ?? 0,
+        height: height,
+        weight: weight,
+        date: DateTime.now(),
+      );
+
   IMCFormState copyWith({
     IMCFormStatus? status,
     IMCResult? imcResult,

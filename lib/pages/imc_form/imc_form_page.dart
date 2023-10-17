@@ -22,6 +22,7 @@ class IMCFormPage extends StatelessWidget {
           create: (context) => IMCFormBloc(
             imcService: context.read(),
             personRepository: context.read(),
+            personDimensionsRepository: context.read(),
             initialPerson: person,
           ),
         ),

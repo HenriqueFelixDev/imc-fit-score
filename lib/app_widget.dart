@@ -8,6 +8,8 @@ import 'pages/imc_list/imc_list_page.dart';
 import 'pages/onboarding/onboarding_page.dart';
 import 'repositories/person/person_repository.dart';
 import 'repositories/person/person_repository_impl.dart';
+import 'repositories/person_dimensions/person_dimensions_repository.dart';
+import 'repositories/person_dimensions/person_dimensions_repository_impl.dart';
 import 'styles/theme.dart';
 
 class AppWidget extends StatelessWidget {
@@ -20,6 +22,9 @@ class AppWidget extends StatelessWidget {
       providers: [
         RepositoryProvider<PersonRepository>(
           create: (_) => PersonRepositoryImpl(),
+        ),
+        RepositoryProvider<PersonDimensionsRepository>(
+          create: (_) => PersonDimensionsRepositoryImpl(),
         ),
         Provider.value(value: sharedPreferences),
         Provider(
