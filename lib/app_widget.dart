@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'core/storage/settings_storage.dart';
-import 'pages/imc_form/imc_form_page.dart';
+import 'pages/imc_list/imc_list_page.dart';
 import 'pages/onboarding/onboarding_page.dart';
+import 'repositories/person/person_repository.dart';
+import 'repositories/person/person_repository_impl.dart';
 import 'styles/theme.dart';
 
 class AppWidget extends StatelessWidget {
@@ -15,6 +18,9 @@ class AppWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
+        RepositoryProvider<PersonRepository>(
+          create: (_) => PersonRepositoryImpl(),
+        ),
         Provider.value(value: sharedPreferences),
         Provider(
           create: (context) => SettingsStorage(preferences: context.read()),
@@ -25,7 +31,7 @@ class AppWidget extends StatelessWidget {
           title: 'IMC FitScore',
           theme: darkTheme,
           home: context.read<SettingsStorage>().hideOnboarding
-              ? const IMCFormPage()
+              ? const IMCListPage()
               : const OnboardingPage(),
         );
       },

@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../../core/extensions/extensions.dart';
 import '../../components/components.dart';
 import '../../core/storage/settings_storage.dart';
 import '../../gen/assets.gen.dart';
 import '../../gen/colors.gen.dart';
-import '../imc_form/imc_form_page.dart';
+import '../imc_list/imc_list_page.dart';
 
 class OnboardingPage extends StatefulWidget {
   const OnboardingPage({super.key});
@@ -119,7 +120,7 @@ class _LastPageIndicator extends StatelessWidget {
             child: const Text('Começar'),
             onPressed: () async {
               context.read<SettingsStorage>().setHideOnboarding(true);
-              Navigator.pushReplacement(context, IMCFormPage.route());
+              Navigator.pushReplacement(context, const IMCListPage().route());
             },
           ),
         ),

@@ -1,53 +1,74 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../components/components.dart';
+import '../../core/extensions/extensions.dart';
 import '../../core/models/models.dart';
+import '../../services/imc_service/imc_service.dart';
+import '../../services/imc_service/imc_service_impl.dart';
 import '../imc_result/imc_result_page.dart';
+import 'bloc/imc_form_bloc.dart';
 
 class IMCFormPage extends StatelessWidget {
-  const IMCFormPage({super.key});
-
-  static Route route() {
-    return MaterialPageRoute(
-      builder: (_) => const IMCFormPage(),
-    );
-  }
+  final Person? person;
+  const IMCFormPage({super.key, this.person});
 
   @override
   Widget build(BuildContext context) {
-    return const _IMCFormView();
+    return MultiBlocProvider(
+      providers: [
+        RepositoryProvider<IMCService>(create: (_) => IMCServiceImpl()),
+        BlocProvider(
+          create: (context) => IMCFormBloc(
+            imcService: context.read(),
+            personRepository: context.read(),
+            initialPerson: person,
+          ),
+        ),
+      ],
+      child: _IMCFormView(person: person),
+    );
   }
 }
 
 class _IMCFormView extends StatefulWidget {
-  const _IMCFormView();
+  final Person? person;
+  const _IMCFormView({this.person});
 
   @override
   State<_IMCFormView> createState() => _IMCFormViewState();
 }
 
 class _IMCFormViewState extends State<_IMCFormView> {
-  String? name;
-  Gender? gender;
-  double height = 1.5;
-  double weight = 30.0;
-
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
+    final controller = context.read<IMCFormBloc>();
 
-    return SafeArea(
-      child: Scaffold(
-        body: Padding(
-          padding: const EdgeInsets.all(32.0),
-          child: ListView(
+    return BlocListener<IMCFormBloc, IMCFormState>(
+      listener: (context, state) {
+        if (state.status == IMCFormStatus.success) {
+          Navigator.pushReplacement(
+            context,
+            IMCResultPage(
+              person: state.person,
+              imcResult: state.imcResult!,
+            ).route(),
+          );
+        }
+      },
+      child: SafeArea(
+        child: Scaffold(
+          appBar: IMCAppBar(title: 'Calcular IMC'),
+          body: ListView(
+            padding: const EdgeInsets.all(32.0).copyWith(top: 0.0),
             children: [
-              const IMCTitle(text: 'Calcular IMC'),
               const Text('Nome (opcional)'),
               const SizedBox(height: 8.0),
-              TextField(
+              TextFormField(
+                initialValue: controller.name,
                 keyboardType: TextInputType.name,
-                onChanged: (value) => name = value,
+                onChanged: (value) => controller.name = value,
                 decoration: InputDecoration(
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(10.0),
@@ -59,44 +80,50 @@ class _IMCFormViewState extends State<_IMCFormView> {
               const Text('Gênero (opcional)'),
               const SizedBox(height: 8.0),
               GenderSelect(
-                onChanged: (value) => gender = value,
+                initialValue: controller.gender,
+                onChanged: (value) => controller.gender = value,
               ),
               const SizedBox(height: 32.0),
-              _Slider(
-                label: 'Massa (Kg)',
-                displayValue: '$weight Kg',
-                value: weight,
-                min: 30.0,
-                max: 250.0,
-                steps: 0.5,
-                onChanged: (value) => setState(() => weight = value),
+              BlocBuilder<IMCFormBloc, IMCFormState>(
+                buildWhen: (previous, current) =>
+                    previous.weight != current.weight,
+                builder: (context, state) {
+                  return _Slider(
+                    label: 'Massa (Kg)',
+                    displayValue: '${state.weight} Kg',
+                    value: state.weight,
+                    min: 30.0,
+                    max: 250.0,
+                    steps: 0.5,
+                    onChanged: (value) => controller.weight = value,
+                  );
+                },
               ),
               const SizedBox(height: 32.0),
-              _Slider(
-                label: 'Altura (m)',
-                displayValue: '$height m',
-                value: height,
-                min: 1.0,
-                max: 2.5,
-                steps: 0.01,
-                onChanged: (value) => setState(() => height = value),
+              BlocBuilder<IMCFormBloc, IMCFormState>(
+                buildWhen: (previous, current) =>
+                    previous.height != current.height,
+                builder: (context, state) {
+                  return _Slider(
+                    label: 'Altura (m)',
+                    displayValue: '${state.height} m',
+                    value: state.height,
+                    min: 1.0,
+                    max: 2.5,
+                    steps: 0.01,
+                    onChanged: (value) => controller.height = value,
+                  );
+                },
               ),
             ],
           ),
-        ),
-        bottomNavigationBar: Padding(
-          padding: const EdgeInsets.all(32.0).copyWith(top: 8.0),
-          child: ElevatedButton(
-            onPressed: () {
-              final person = Person(
-                name: name,
-                gender: gender,
-                height: height,
-                weight: weight,
-              );
-              Navigator.push(context, IMCResultPage.route(person));
-            },
-            child: const Text('Calcular Meu IMC'),
+          bottomNavigationBar: Padding(
+            padding: const EdgeInsets.all(32.0).copyWith(top: 8.0),
+            child: _CalculateButton(
+              onPressed: () async {
+                context.read<IMCFormBloc>().calculateIMC();
+              },
+            ),
           ),
         ),
       ),
@@ -147,6 +174,26 @@ class _Slider extends StatelessWidget {
           textAlign: TextAlign.center,
         ),
       ],
+    );
+  }
+}
+
+class _CalculateButton extends StatelessWidget {
+  final VoidCallback onPressed;
+  const _CalculateButton({required this.onPressed});
+
+  @override
+  Widget build(BuildContext context) {
+    final status =
+        context.select<IMCFormBloc, IMCFormStatus>((bloc) => bloc.state.status);
+
+    final isLoading = status == IMCFormStatus.loading;
+
+    return ElevatedButton(
+      onPressed: isLoading ? null : onPressed,
+      child: isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : const Text('Calcular Meu IMC'),
     );
   }
 }

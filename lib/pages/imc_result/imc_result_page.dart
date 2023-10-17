@@ -12,50 +12,24 @@ import '../../components/app_snackbar.dart';
 import '../../components/components.dart';
 import '../../components/imc_result_card.dart';
 import '../../core/models/models.dart';
-import '../../services/imc_service/imc_service.dart';
-import '../../services/imc_service/imc_service_impl.dart';
 
 class IMCResultPage extends StatelessWidget {
   final Person person;
-
-  const IMCResultPage({super.key, required this.person});
-
-  static Route route(Person person) {
-    return MaterialPageRoute(
-      builder: (_) {
-        return IMCResultPage(person: person);
-      },
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return _IMCResultView(person: person, imcService: IMCServiceImpl());
-  }
-}
-
-class _IMCResultView extends StatefulWidget {
-  final Person person;
-  final IMCService imcService;
-
-  const _IMCResultView({
-    required this.person,
-    required this.imcService,
-  });
-
-  @override
-  State<_IMCResultView> createState() => _IMCResultViewState();
-}
-
-class _IMCResultViewState extends State<_IMCResultView> {
+  final IMCResult imcResult;
   final _boundaryKey = GlobalKey();
 
-  Future<void> _saveImage() async {
+  IMCResultPage({
+    super.key,
+    required this.person,
+    required this.imcResult,
+  });
+
+  Future<void> _saveImage(BuildContext context) async {
     final scaffoldMessenger = ScaffoldMessenger.of(context);
     final render = _boundaryKey.currentContext!.findRenderObject()
         as RenderRepaintBoundary;
 
-    if (!(await _checkStoragePermission())) return;
+    if (!(await _checkStoragePermission(context))) return;
 
     final path = await _saveImageToGallery(render);
     final success = path != null;
@@ -81,7 +55,7 @@ class _IMCResultViewState extends State<_IMCResultView> {
     return result['filePath']?.replaceAll('file://', '');
   }
 
-  Future<bool> _checkStoragePermission() async {
+  Future<bool> _checkStoragePermission(BuildContext context) async {
     final scaffoldMessenger = ScaffoldMessenger.of(context);
     final androidInfo = await DeviceInfoPlugin().androidInfo;
     final apiVersion = androidInfo.version.sdkInt;
@@ -130,7 +104,8 @@ class _IMCResultViewState extends State<_IMCResultView> {
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
-    final imc = widget.imcService.getIMC(widget.person);
+
+    final IMCResult(:height, :weight) = imcResult;
 
     return SafeArea(
       child: Scaffold(
@@ -151,15 +126,15 @@ class _IMCResultViewState extends State<_IMCResultView> {
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Text(
-                            widget.person.name ?? '',
+                            person.name ?? '',
                             textAlign: TextAlign.center,
                             style: const TextStyle(
                               fontSize: 18.0,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
-                          _IMCCalculation(person: widget.person),
-                          IMCResultCard(imc: imc),
+                          _IMCCalculation(height: height, weight: weight),
+                          IMCResultCard(imc: imcResult),
                         ],
                       ),
                     ),
@@ -171,7 +146,7 @@ class _IMCResultViewState extends State<_IMCResultView> {
                           child: const Icon(Icons.share_rounded),
                         ),
                         CircleButton.surface(
-                          onPressed: _saveImage,
+                          onPressed: () => _saveImage(context),
                           child: const Icon(Icons.add_photo_alternate),
                         ),
                       ],
@@ -199,8 +174,9 @@ class _IMCResultViewState extends State<_IMCResultView> {
 }
 
 class _IMCCalculation extends StatelessWidget {
-  final Person person;
-  const _IMCCalculation({required this.person});
+  final double height;
+  final double weight;
+  const _IMCCalculation({required this.height, required this.weight});
 
   @override
   Widget build(BuildContext context) {
@@ -215,13 +191,13 @@ class _IMCCalculation extends StatelessWidget {
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(person.weight.toStringAsFixed(1)),
+            Text(weight.toStringAsFixed(1)),
             const SizedBox(
               height: 10.0,
               width: 80.0,
               child: Divider(),
             ),
-            Text('${person.height} x ${person.height}'),
+            Text('$height x $height'),
           ],
         )
       ],
